@@ -110,7 +110,7 @@ func _on_report_closed() -> void:
 		_show_next_event()
 	else:
 		# 랜덤 뉴스 표시
-		var news := _news_messages[randi() % _news_messages.size()]
+		var news: String = _news_messages[randi() % _news_messages.size()]
 		hud.set_news(news)
 		hud.update_all()
 
