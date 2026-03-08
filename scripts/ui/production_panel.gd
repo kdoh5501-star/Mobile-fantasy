@@ -51,7 +51,7 @@ func _refresh() -> void:
 		var name_label := Label.new()
 		name_label.custom_minimum_size = Vector2(120, 0)
 		name_label.add_theme_font_size_override("font_size", 14)
-		var grade_name := ["D", "C", "B", "A", "S"][grade]
+		var grade_name: String = ["D", "C", "B", "A", "S"][grade]
 		name_label.text = "[%s] %s" % [grade_name, grade_data["name"]]
 		hbox.add_child(name_label)
 
