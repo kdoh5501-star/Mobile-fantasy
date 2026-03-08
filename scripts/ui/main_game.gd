@@ -16,7 +16,7 @@ var _pending_events: Array[Dictionary] = []
 var _current_report: Dictionary = {}
 
 # 뉴스 메시지 풀
-var _news_messages := [
+var _news_messages: Array[String] = [
 	"차장님, 오늘도 힘내세요!",
 	"청장님이 또 골프를 치러 가셨습니다...",
 	"복제인간 1호가 첫 출근했습니다!",
@@ -121,7 +121,7 @@ func _on_turn_ended(_year: int, _month: int, _report: Dictionary) -> void:
 
 func _on_game_ended(ending_type: String, ending_data: Dictionary) -> void:
 	# 엔딩 또는 게임오버 처리
-	var ending_event := {
+	var ending_event: Dictionary = {
 		"id": "ending_%s" % ending_type,
 		"type": "ending",
 		"title": ending_data.get("title", "게임 종료"),

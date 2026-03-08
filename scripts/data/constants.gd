@@ -34,7 +34,7 @@ const ENDING_C_POPULATION := 30_000_000
 # === 복제인간 등급 ===
 enum CloneGrade { D, C, B, A, S }
 
-const CLONE_DATA := {
+const CLONE_DATA: Dictionary = {
 	CloneGrade.D: {
 		"name": "급속복제체",
 		"cost": 5,        # 억 원
@@ -80,7 +80,7 @@ const CLONE_DATA := {
 # === 배치 분야 ===
 enum Sector { MANUFACTURING, MILITARY, MEDICAL, RESEARCH, FAMILY, POLITICS }
 
-const SECTOR_DATA := {
+const SECTOR_DATA: Dictionary = {
 	Sector.MANUFACTURING: {
 		"name": "제조업",
 		"budget_bonus": 10,

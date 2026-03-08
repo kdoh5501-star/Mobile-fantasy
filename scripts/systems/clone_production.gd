@@ -12,7 +12,7 @@ var _rng := RandomNumberGenerator.new()
 var _production_queue: Array[Dictionary] = []
 
 # 시설 건설 비용 (등급별)
-const FACILITY_COST := {
+const FACILITY_COST: Dictionary = {
 	Constants.CloneGrade.D: 100,   # 억 원
 	Constants.CloneGrade.C: 300,
 	Constants.CloneGrade.B: 800,
@@ -99,7 +99,7 @@ func process_monthly_production() -> Array[Dictionary]:
 
 		var successful := total_output - defect_count
 
-		var result := {
+		var result: Dictionary = {
 			"grade": grade,
 			"name": grade_data["name"],
 			"produced": successful,
@@ -125,7 +125,7 @@ func process_monthly_production() -> Array[Dictionary]:
 
 ## 생산 현황 요약
 func get_production_summary() -> Dictionary:
-	var summary := {
+	var summary: Dictionary = {
 		"facilities": {},
 		"monthly_output": 0,
 		"monthly_cost": 0.0,

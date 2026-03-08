@@ -120,7 +120,7 @@ func determine_ending() -> Dictionary:
 
 
 func _make_ending(type: String, title: String, description: String, category: String) -> Dictionary:
-	var ending := {
+	var ending: Dictionary = {
 		"type": type,
 		"title": title,
 		"description": description,

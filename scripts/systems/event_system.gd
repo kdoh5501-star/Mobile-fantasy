@@ -257,7 +257,7 @@ func _get_all_random_events() -> Array[Dictionary]:
 # === 청장 돌발 이벤트 ===
 
 func _get_director_event() -> Dictionary:
-	var events := [
+	var events: Array[Dictionary] = [
 		{
 			"id": "director_million",
 			"type": "director",

@@ -60,7 +60,7 @@ func _refresh() -> void:
 		header.add_child(count_label)
 
 		# 배치 버튼들
-		var amounts := [100, 1000, 10000]
+		var amounts: Array[int] = [100, 1000, 10000]
 		for amount in amounts:
 			var btn := Button.new()
 			btn.text = "+%s" % _format_number(amount)

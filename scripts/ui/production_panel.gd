@@ -111,7 +111,7 @@ func _refresh() -> void:
 
 
 func _get_facility_cost(grade: int) -> int:
-	var base_costs := {0: 100, 1: 300, 2: 800, 3: 2000, 4: 5000}
+	var base_costs: Dictionary = {0: 100, 1: 300, 2: 800, 3: 2000, 4: 5000}
 	var cost: float = base_costs.get(grade, 100)
 	var discount := (ResourceManager.tech_level - 1) * 0.05
 	return int(cost * (1.0 - discount))

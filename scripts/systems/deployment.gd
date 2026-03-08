@@ -57,7 +57,7 @@ func apply_monthly_sector_effects() -> Array[Dictionary]:
 		var sector_data: Dictionary = Constants.SECTOR_DATA[sector]
 		var scale := count / 10000.0  # 1만 명 단위로 효과 스케일링
 
-		var effects := {}
+		var effects: Dictionary = {}
 
 		# 예산 효과
 		var budget_bonus: float = sector_data.get("budget_bonus", 0) * scale
@@ -84,7 +84,7 @@ func apply_monthly_sector_effects() -> Array[Dictionary]:
 				ResourceManager.tech_level += 1
 				effects["tech_level"] = 1
 
-		var result := {
+		var result: Dictionary = {
 			"sector": sector,
 			"sector_name": sector_data["name"],
 			"clone_count": count,
@@ -99,7 +99,7 @@ func apply_monthly_sector_effects() -> Array[Dictionary]:
 
 ## 배치 현황 요약
 func get_deployment_summary() -> Dictionary:
-	var summary := {
+	var summary: Dictionary = {
 		"total_deployed": 0,
 		"sectors": {}
 	}

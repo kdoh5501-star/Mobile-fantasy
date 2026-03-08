@@ -74,7 +74,7 @@ func _check_ending() -> void:
 	var pop := ResourceManager.population
 	var eth := ResourceManager.ethics
 	var app := ResourceManager.approval
-	var ending := {}
+	var ending: Dictionary = {}
 
 	# 히든 엔딩 체크
 	if eth <= 0 and ResourceManager.total_clones_produced >= 100:
