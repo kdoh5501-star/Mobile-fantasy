@@ -164,10 +164,12 @@ func _on_game_ended(ending_type: String, ending_data: Dictionary) -> void:
 	}
 	event_popup.show_event(ending_event)
 	# 타이틀로 돌아가는 처리
-	event_popup.closed.connect(func():
-		await get_tree().create_timer(0.5).timeout
-		get_tree().change_scene_to_file("res://scenes/screens/title_screen.tscn")
-	, CONNECT_ONE_SHOT)
+	event_popup.closed.connect(_return_to_title, CONNECT_ONE_SHOT)
+
+
+func _return_to_title() -> void:
+	await get_tree().create_timer(0.5).timeout
+	get_tree().change_scene_to_file("res://scenes/screens/title_screen.tscn")
 
 
 func _on_production_pressed() -> void:
