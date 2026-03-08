@@ -73,7 +73,7 @@ func _process_production_phase() -> void:
 func _process_deployment_phase() -> void:
 	turn_phase_changed.emit("deployment")
 	if deployment:
-		var results: Dictionary = deployment.apply_monthly_sector_effects()
+		var results: Array[Dictionary] = deployment.apply_monthly_sector_effects()
 		_monthly_report["deployment_effects"] = results
 
 
