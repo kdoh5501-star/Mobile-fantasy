@@ -85,7 +85,7 @@ func _on_event_triggered(event_data: Dictionary) -> void:
 
 func _show_next_event() -> void:
 	if _pending_events.size() > 0:
-		var event := _pending_events.pop_front()
+		var event: Dictionary = _pending_events.pop_front()
 		event_popup.show_event(event)
 	else:
 		_show_report()
