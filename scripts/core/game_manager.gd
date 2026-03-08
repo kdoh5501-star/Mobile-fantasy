@@ -65,7 +65,7 @@ func _advance_month() -> void:
 
 func _check_ending() -> void:
 	# EndingSystem에 엔딩 판정을 위임
-	var ending_system := Engine.get_main_loop().root.get_node_or_null("MainGame/Systems/EndingSystem")
+	var ending_system: Node = Engine.get_main_loop().root.get_node_or_null("MainGame/Systems/EndingSystem")
 	if ending_system and ending_system.has_method("determine_ending"):
 		var ending: Dictionary = ending_system.determine_ending()
 		current_phase = GamePhase.ENDING
