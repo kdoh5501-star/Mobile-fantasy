@@ -147,21 +147,20 @@ func _generate_result_text(effects: Dictionary) -> String:
 
 	for key in effects:
 		var val = effects[key]
-		var sign := "+" if val > 0 else ""
-		var color := "green" if val > 0 else "red"
+		var val_sign := "+" if val > 0 else ""
 		match key:
 			"budget":
-				lines.append("  예산 %s%s억 원" % [sign, str(val)])
+				lines.append("  예산 %s%s억 원" % [val_sign, str(val)])
 			"approval":
-				lines.append("  여론 %s%.1f%%" % [sign, val])
+				lines.append("  여론 %s%.1f%%" % [val_sign, val])
 			"ethics":
-				lines.append("  윤리 %s%d" % [sign, val])
+				lines.append("  윤리 %s%d" % [val_sign, val])
 			"director_mood":
-				lines.append("  청장 기분 %s%d" % [sign, val])
+				lines.append("  청장 기분 %s%d" % [val_sign, val])
 			"tech_level":
-				lines.append("  기술 레벨 %s%d" % [sign, val])
+				lines.append("  기술 레벨 %s%d" % [val_sign, val])
 			"population":
-				lines.append("  인구 %s%d명" % [sign, val])
+				lines.append("  인구 %s%d명" % [val_sign, val])
 
 	if lines.size() == 1:
 		lines.append("  (변화 없음)")

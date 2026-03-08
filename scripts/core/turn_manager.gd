@@ -149,7 +149,7 @@ func _process_event_phase() -> void:
 func _check_population_gameover() -> void:
 	var total := ResourceManager.get_total_population()
 	if total <= Constants.GAMEOVER_POPULATION:
-		ResourceManager.game_over.emit("총 인구가 %d만 명 이하로 떨어졌습니다! 국가 존립이 위태롭습니다." % (total / 10000))
+		ResourceManager.game_over.emit("총 인구가 %d만 명 이하로 떨어졌습니다! 국가 존립이 위태롭습니다." % [total / 10000])
 
 
 ## 배치된 클론에서 사망자를 비례 감소

@@ -13,7 +13,7 @@ func _ready() -> void:
 	_rng.randomize()
 
 
-func check_events(year: int, month: int, turn: int) -> Array[Dictionary]:
+func check_events(year: int, month: int, _turn: int) -> Array[Dictionary]:
 	var triggered_events: Array[Dictionary] = []
 
 	# 분기별 정기 이벤트 (3, 6, 9, 12월)

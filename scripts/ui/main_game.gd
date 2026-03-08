@@ -105,7 +105,7 @@ func _on_next_turn() -> void:
 	GameManager.process_turn()
 
 
-func _on_event_triggered(event_data: Dictionary) -> void:
+func _on_event_triggered(_event_data: Dictionary) -> void:
 	pass
 
 

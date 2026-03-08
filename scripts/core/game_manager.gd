@@ -49,6 +49,8 @@ func process_turn() -> void:
 	# 다음 달로
 	_advance_month()
 
+	turn_ended.emit(current_year, current_month, {})
+
 	# 게임 종료 체크
 	if current_year > Constants.END_YEAR:
 		_check_ending()

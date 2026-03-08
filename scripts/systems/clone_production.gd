@@ -2,7 +2,6 @@ extends Node
 
 ## 복제인간 생산 시스템
 
-signal production_started(grade: int, facility_id: int)
 signal production_completed(grade: int, count: int, has_defect: bool)
 signal facility_built(grade: int)
 
@@ -92,7 +91,7 @@ func process_monthly_production() -> Array[Dictionary]:
 
 		# 결함 체크 (확률 기반, 이항분포 근사)
 		var defect_count := int(total_output * defect_rate)
-		defect_count += _rng.randi_range(-max(1, defect_count / 5), max(1, defect_count / 5))
+		defect_count += _rng.randi_range(-maxi(1, defect_count / 5), maxi(1, defect_count / 5))
 		defect_count = clampi(defect_count, 0, total_output)
 
 		var successful := total_output - defect_count
