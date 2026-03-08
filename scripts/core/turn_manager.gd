@@ -67,7 +67,7 @@ func _process_budget_phase() -> void:
 func _process_production_phase() -> void:
 	turn_phase_changed.emit("production")
 	if clone_production:
-		var results: Array = clone_production.process_monthly_production()
+		var results: Array[Dictionary] = clone_production.process_monthly_production()
 		_monthly_report["production"] = results
 
 		# 생산된 복제인간을 clone_population에 추가

@@ -72,7 +72,7 @@ func _check_ending() -> void:
 		game_ended.emit(ending.get("type", "C"), ending)
 	else:
 		# 폴백: EndingSystem이 없을 때 기본 엔딩
-		var pop := ResourceManager.population
+		var pop: int = ResourceManager.get_total_population()
 		var ending: Dictionary = {}
 		if pop >= Constants.ENDING_S_POPULATION:
 			ending = {"type": "S", "title": "신인류 시대", "description": "인류의 새 시대가 열렸습니다!"}

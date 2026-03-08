@@ -59,7 +59,7 @@ func _get_quarterly_event(year: int, month: int) -> Dictionary:
 				"id": "audit_%d_%d" % [year, month],
 				"type": "quarterly",
 				"title": "국정감사",
-				"description": "국회에서 신인류청의 성과를 보고하라고 합니다.\n현재 인구: %s명\n여론 지지율: %.1f%%" % [_format_number(ResourceManager.population), ResourceManager.approval],
+				"description": "국회에서 신인류청의 성과를 보고하라고 합니다.\n총 인구: %s명 (자연인 %s + 복제인 %s)\n여론 지지율: %.1f%%" % [_format_number(ResourceManager.get_total_population()), _format_number(ResourceManager.natural_population), _format_number(ResourceManager.clone_population), ResourceManager.approval],
 				"choices": [
 					{"text": "성과를 과장해서 보고한다", "effects": {"approval": 5, "ethics": -3, "director_mood": 10}},
 					{"text": "솔직하게 보고한다", "effects": {"approval": -2, "ethics": 5, "director_mood": -5}},
@@ -341,7 +341,8 @@ func apply_effects(effects: Dictionary) -> void:
 	if effects.has("tech_level"):
 		ResourceManager.tech_level += effects["tech_level"]
 	if effects.has("population"):
-		ResourceManager.population += effects["population"]
+		# 이벤트의 인구 효과는 복제인구에 적용
+		ResourceManager.clone_population += effects["population"]
 
 
 func _format_number(num: int) -> String:
