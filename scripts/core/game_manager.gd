@@ -43,20 +43,13 @@ func process_turn() -> void:
 	if current_phase != GamePhase.PLAYING:
 		return
 
-	# 1. 월간 자원 변동 적용
-	var report: Dictionary = ResourceManager.apply_monthly_changes()
+	# 자원 변동은 TurnManager.process_full_turn()에서 처리됨
+	# 여기서는 턴 진행(날짜, 엔딩 체크)만 담당
 
-	# 2. 이벤트 체크
-	var events := EventSystem.check_events(current_year, current_month, current_turn)
-	report["events"] = events
-
-	# 3. 턴 종료
-	turn_ended.emit(current_year, current_month, report)
-
-	# 4. 다음 달로
+	# 다음 달로
 	_advance_month()
 
-	# 5. 게임 종료 체크
+	# 게임 종료 체크
 	if current_year > Constants.END_YEAR:
 		_check_ending()
 	else:
@@ -71,49 +64,26 @@ func _advance_month() -> void:
 
 
 func _check_ending() -> void:
-	var pop := ResourceManager.population
-	var eth := ResourceManager.ethics
-	var app := ResourceManager.approval
-	var ending: Dictionary = {}
-
-	# 히든 엔딩 체크
-	if eth <= 0 and ResourceManager.total_clones_produced >= 100:
-		ending = {
-			"type": "hidden_revolution",
-			"title": "복제인간 혁명",
-			"description": "복제인간들이 반란을 일으켜 독립국을 선언했습니다!"
-		}
-	# S 엔딩
-	elif pop >= Constants.ENDING_S_POPULATION and eth >= Constants.ENDING_S_ETHICS and app >= Constants.ENDING_S_APPROVAL:
-		ending = {
-			"type": "S",
-			"title": "신인류 시대",
-			"description": "복제인간과 인간이 공존하는 이상적 사회가 실현되었습니다!"
-		}
-	# A 엔딩
-	elif pop >= Constants.ENDING_A_POPULATION and app >= Constants.ENDING_A_APPROVAL:
-		ending = {
-			"type": "A",
-			"title": "그럭저럭 성공",
-			"description": "논란은 있지만 인구 위기는 해결했습니다. 차장님 수고하셨습니다."
-		}
-	# B 엔딩
-	elif pop >= Constants.ENDING_B_POPULATION:
-		ending = {
-			"type": "B",
-			"title": "아슬아슬 현상유지",
-			"description": "겨우 현상 유지... 미래는 여전히 불투명합니다."
-		}
-	# C 엔딩
+	# EndingSystem에 엔딩 판정을 위임
+	var ending_system := Engine.get_main_loop().root.get_node_or_null("MainGame/Systems/EndingSystem")
+	if ending_system and ending_system.has_method("determine_ending"):
+		var ending: Dictionary = ending_system.determine_ending()
+		current_phase = GamePhase.ENDING
+		game_ended.emit(ending.get("type", "C"), ending)
 	else:
-		ending = {
-			"type": "C",
-			"title": "프로젝트 실패",
-			"description": "인구 위기를 해결하지 못했습니다. 차장은 좌천되었습니다..."
-		}
-
-	current_phase = GamePhase.ENDING
-	game_ended.emit(ending["type"], ending)
+		# 폴백: EndingSystem이 없을 때 기본 엔딩
+		var pop := ResourceManager.population
+		var ending: Dictionary = {}
+		if pop >= Constants.ENDING_S_POPULATION:
+			ending = {"type": "S", "title": "신인류 시대", "description": "인류의 새 시대가 열렸습니다!"}
+		elif pop >= Constants.ENDING_A_POPULATION:
+			ending = {"type": "A", "title": "그럭저럭 성공", "description": "인구 위기를 해결했습니다."}
+		elif pop >= Constants.ENDING_B_POPULATION:
+			ending = {"type": "B", "title": "현상유지", "description": "겨우 현상 유지입니다."}
+		else:
+			ending = {"type": "C", "title": "프로젝트 실패", "description": "인구 위기를 해결하지 못했습니다."}
+		current_phase = GamePhase.ENDING
+		game_ended.emit(ending["type"], ending)
 
 
 func _on_game_over(reason: String) -> void:

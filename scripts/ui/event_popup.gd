@@ -3,6 +3,7 @@ extends Control
 ## 이벤트 팝업 - 선택지를 표시하고 결과를 반환
 
 signal choice_made(event_data: Dictionary, choice_index: int)
+signal closed()
 
 @onready var title_label: Label = $Panel/VBox/TitleLabel
 @onready var description_label: Label = $Panel/VBox/DescriptionLabel
@@ -122,7 +123,10 @@ func _generate_result_text(effects: Dictionary) -> String:
 func _close() -> void:
 	var tween := create_tween()
 	tween.tween_property(panel, "modulate:a", 0.0, 0.2)
-	tween.tween_callback(func(): visible = false)
+	tween.tween_callback(func():
+		visible = false
+		closed.emit()
+	)
 
 
 func _clear_choices() -> void:

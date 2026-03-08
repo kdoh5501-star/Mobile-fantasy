@@ -27,10 +27,36 @@ var _news_messages: Array[String] = [
 	"해외 언론에서 취재 요청이 왔습니다.",
 	"청장님: \"오늘 저녁 회식이다!\"",
 	"인사과에서 차장님 야근 수당을 문의합니다... (없음)",
+	"복제인간들이 노조를 결성하려는 움직임이 있습니다.",
+	"오늘의 점심: 구내식당 카레. 복제인간도 같이 먹습니다.",
+	"청장님이 출장비로 스테이크를 드셨다는 제보가...",
+	"복제인간 축구팀이 K-리그 참가를 신청했습니다!",
+	"\"복제인간도 연말정산 하나요?\" - 국세청 문의",
+	"복제인간 커뮤니티에서 '원본 따라잡기' 챌린지가 유행 중.",
+	"청장님이 복제인간에게 커피 심부름을 시키다 적발.",
+	"해외 석학: \"한국의 복제 기술은 50년을 앞섰다\"",
+	"복제인간 3호가 대학 수능 만점을 받았습니다!",
+	"청장님: \"내 복제인간은 안 만들어도 되나?\" (진지)",
+	"경비팀: 오늘도 시위대 0명. 평화로운 하루입니다.",
+	"복제인간 카페가 핫플레이스로 등극! 대기 2시간.",
+	"기술팀 야근 중... 피자 배달 요청이 들어왔습니다.",
+	"민원: \"옆집 복제인간이 노래를 너무 잘해요 (시끄러움)\"",
+	"복제인간 유튜버 구독자 100만 돌파! 실버 버튼 수여.",
+	"국회의원: \"차장, 이거 합법 맞아?\" / 차장: \"아마도요...\"",
+	"복제인간들 사이에서 '나는 몇 번째?' 퀴즈가 유행.",
+	"오늘의 전력 소비: 서울시의 3%. 전기세가 무섭습니다.",
+	"복제인간 어린이집 개원! 대기 명단 이미 500명.",
+	"청장님이 '복제인간과 함께하는 요가' 수업을 개설했습니다.",
 ]
 
 
 func _ready() -> void:
+	# 테마 적용
+	var canvas_layer: CanvasLayer = $CanvasLayer
+	for child in canvas_layer.get_children():
+		if child is Control:
+			child.theme = GameTheme.create_theme()
+
 	# 시스템 연결
 	production_panel.set_clone_production(clone_production)
 	deployment_panel.set_deployment_system(deployment_system)
@@ -45,6 +71,7 @@ func _ready() -> void:
 
 	# 이벤트 팝업 시그널
 	event_popup.choice_made.connect(_on_event_choice_made)
+	event_popup.closed.connect(_on_event_popup_closed)
 
 	# 보고서 시그널
 	report_popup.report_closed.connect(_on_report_closed)
@@ -92,12 +119,17 @@ func _show_next_event() -> void:
 
 
 func _on_event_choice_made(_event_data: Dictionary, _choice_index: int) -> void:
-	# 선택지 처리 후 다음 이벤트 또는 보고서
-	# 잠시 대기 후 다음으로
-	await get_tree().create_timer(0.5).timeout
-	if event_popup.visible:
-		# close_button을 누를 때까지 대기
-		pass
+	# 선택 후 결과가 표시되고 확인 버튼이 나타남
+	# 실제 진행은 _on_event_popup_closed에서 처리
+	pass
+
+
+func _on_event_popup_closed() -> void:
+	# 이벤트 팝업이 닫히면 다음 이벤트 또는 보고서 표시
+	if _pending_events.size() > 0:
+		_show_next_event()
+	else:
+		_show_report()
 
 
 func _show_report() -> void:
@@ -132,8 +164,8 @@ func _on_game_ended(ending_type: String, ending_data: Dictionary) -> void:
 	}
 	event_popup.show_event(ending_event)
 	# 타이틀로 돌아가는 처리
-	event_popup.choice_made.connect(func(_ed: Dictionary, _ci: int):
-		await get_tree().create_timer(1.0).timeout
+	event_popup.closed.connect(func():
+		await get_tree().create_timer(0.5).timeout
 		get_tree().change_scene_to_file("res://scenes/screens/title_screen.tscn")
 	, CONNECT_ONE_SHOT)
 
@@ -147,27 +179,39 @@ func _on_deployment_pressed() -> void:
 
 
 func _on_research_pressed() -> void:
-	# 간단한 연구 투자 (추후 별도 패널로 확장 가능)
-	if ResourceManager.budget >= 50:
-		ResourceManager.budget -= 50
-		if randf() < 0.4:
+	var cost := 50.0
+	# 기술 레벨이 높으면 비용 증가
+	cost += (ResourceManager.tech_level - 1) * 20.0
+	if ResourceManager.budget >= cost:
+		ResourceManager.budget -= cost
+		# 기술 레벨 낮을수록 성공률 높음
+		var success_rate := 0.5 - (ResourceManager.tech_level - 1) * 0.05
+		if randf() < maxf(success_rate, 0.1):
 			ResourceManager.tech_level += 1
-			hud.set_news("연구 투자 성공! 기술 레벨이 올랐습니다! (Lv.%d)" % ResourceManager.tech_level)
+			hud.set_news("[연구 성공] 기술 레벨이 올랐습니다! (Lv.%d)\n투자 비용: %.0f억 원" % [ResourceManager.tech_level, cost])
 		else:
-			hud.set_news("연구 투자 진행 중... 아직 성과는 없습니다. (-50억 원)")
+			hud.set_news("[연구 진행 중] 아직 성과는 없습니다.\n투자 비용: %.0f억 원 | 현재 기술: Lv.%d" % [cost, ResourceManager.tech_level])
 	else:
-		hud.set_news("예산이 부족합니다! (연구 투자 비용: 50억 원)")
+		hud.set_news("[예산 부족] 연구 투자 비용: %.0f억 원\n보유 예산: %.0f억 원" % [cost, ResourceManager.budget])
+	hud.update_all()
 
 
 func _on_diplomacy_pressed() -> void:
-	# 외교 행동 (추후 확장)
-	if ResourceManager.budget >= 30:
-		ResourceManager.budget -= 30
-		ResourceManager.ethics += 3
-		ResourceManager.approval += 2
-		hud.set_news("외교 활동을 수행했습니다. 국제 사회의 시선이 조금 누그러졌습니다. (-30억 원)")
+	var cost := 30.0
+	if ResourceManager.budget >= cost:
+		ResourceManager.budget -= cost
+		var results: Array[String] = []
+		# 윤리가 낮으면 효과 증가
+		var ethics_gain := 3 + (1 if ResourceManager.ethics < 50 else 0)
+		var approval_gain := 2.0 + (1.0 if ResourceManager.approval < 40.0 else 0.0)
+		ResourceManager.ethics += ethics_gain
+		ResourceManager.approval += approval_gain
+		results.append("윤리 +%d" % ethics_gain)
+		results.append("여론 +%.0f%%" % approval_gain)
+		hud.set_news("[외교 활동] 국제 사회와 대화를 나눴습니다.\n결과: %s | 비용: %.0f억 원" % [", ".join(results), cost])
 	else:
-		hud.set_news("예산이 부족합니다! (외교 비용: 30억 원)")
+		hud.set_news("[예산 부족] 외교 비용: %.0f억 원\n보유 예산: %.0f억 원" % [cost, ResourceManager.budget])
+	hud.update_all()
 
 
 func _on_report_pressed() -> void:

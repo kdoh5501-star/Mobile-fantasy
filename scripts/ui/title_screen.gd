@@ -7,6 +7,9 @@ extends Control
 
 
 func _ready() -> void:
+	# 테마 적용
+	theme = GameTheme.create_theme()
+
 	start_button.pressed.connect(_on_start_pressed)
 	continue_button.pressed.connect(_on_continue_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
