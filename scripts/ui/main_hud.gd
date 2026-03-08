@@ -1,6 +1,6 @@
 extends Control
 
-## 메인 게임 HUD - 상단 자원바 + 하단 메뉴 + 중앙 뉴스 표시
+## 메인 게임 HUD - 카이로소프트 스타일 UI
 
 signal production_pressed()
 signal deployment_pressed()
@@ -47,8 +47,37 @@ func _ready() -> void:
 	ResourceManager.population_changed.connect(_on_population_changed)
 	GameManager.turn_started.connect(_on_turn_started)
 
+	# 카이로소프트 스타일 버튼 색상 적용
+	_apply_button_styles()
+
 	# 초기 표시
 	update_all()
+
+
+func _apply_button_styles() -> void:
+	# 각 버튼에 고유 색상 + 아이콘 적용
+	_style_button(production_btn, Color(0.35, 0.55, 0.8), "⚙ 생산")
+	_style_button(deployment_btn, Color(0.4, 0.7, 0.4), "👥 배치")
+	_style_button(research_btn, Color(0.55, 0.45, 0.75), "🔬 연구")
+	_style_button(diplomacy_btn, Color(0.3, 0.65, 0.7), "🌐 외교")
+	_style_button(report_btn, Color(0.7, 0.55, 0.35), "📋 보고")
+	_style_button(next_turn_btn, Color(0.85, 0.45, 0.25), "▶ 다음 턴")
+
+
+func _style_button(btn: Button, color: Color, label_text: String) -> void:
+	btn.text = label_text
+	var normal := GameTheme.make_colored_button(color)
+	var hover := GameTheme.make_colored_button(color.lightened(0.15))
+	hover.border_color = Color(1, 1, 1, 0.5)
+	var pressed := GameTheme.make_colored_button(color.darkened(0.15))
+	pressed.shadow_size = 0
+
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_color_override("font_color", Color(1, 1, 1))
+	btn.add_theme_color_override("font_hover_color", Color(1, 1, 0.9))
+	btn.add_theme_color_override("font_pressed_color", Color(0.9, 0.9, 0.8))
 
 
 func update_all() -> void:
@@ -63,50 +92,76 @@ func update_all() -> void:
 
 
 func _update_date() -> void:
-	date_label.text = GameManager.get_date_string()
+	date_label.text = "📅 %s" % GameManager.get_date_string()
 
 
 func _update_budget() -> void:
-	budget_label.text = "예산: %.0f억 원" % ResourceManager.budget
+	budget_label.text = "💰 예산: %s억 원" % _format_number(int(ResourceManager.budget))
 
 
 func _update_population() -> void:
 	var pop := ResourceManager.population
 	if pop >= 10_000_000:
-		population_label.text = "인구: %.1f백만" % (pop / 1_000_000.0)
+		population_label.text = "👤 인구  %.1f백만" % (pop / 1_000_000.0)
 	else:
-		population_label.text = "인구: %s명" % _format_number(pop)
+		population_label.text = "👤 인구  %s명" % _format_number(pop)
+	population_label.add_theme_color_override("font_color", GameTheme.COLOR_POPULATION)
 
 
 func _update_approval() -> void:
 	var app := ResourceManager.approval
-	approval_label.text = "여론: %.1f%%" % app
-	# 색상 변경
+	approval_label.text = "📊 여론  %.1f%%" % app
 	if app >= 60:
-		approval_label.add_theme_color_override("font_color", Color(0.3, 0.9, 0.3))
+		approval_label.add_theme_color_override("font_color", GameTheme.POSITIVE_GREEN)
 	elif app >= 40:
-		approval_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.3))
+		approval_label.add_theme_color_override("font_color", GameTheme.COLOR_APPROVAL)
 	else:
-		approval_label.add_theme_color_override("font_color", Color(0.9, 0.3, 0.3))
+		approval_label.add_theme_color_override("font_color", GameTheme.NEGATIVE_RED)
 
 
 func _update_ethics() -> void:
 	var eth := ResourceManager.ethics
-	ethics_label.text = "윤리: %d" % eth
+	ethics_label.text = "⚖ 윤리  %d" % eth
 	if eth >= 60:
-		ethics_label.add_theme_color_override("font_color", Color(0.3, 0.8, 0.9))
+		ethics_label.add_theme_color_override("font_color", GameTheme.COLOR_ETHICS)
 	elif eth >= 30:
-		ethics_label.add_theme_color_override("font_color", Color(0.9, 0.7, 0.3))
+		ethics_label.add_theme_color_override("font_color", GameTheme.WARNING_YELLOW)
 	else:
-		ethics_label.add_theme_color_override("font_color", Color(0.9, 0.2, 0.2))
+		ethics_label.add_theme_color_override("font_color", GameTheme.NEGATIVE_RED)
 
 
 func _update_tech() -> void:
-	tech_label.text = "기술: Lv.%d" % ResourceManager.tech_level
+	tech_label.text = "🔧 기술  Lv.%d" % ResourceManager.tech_level
+	tech_label.add_theme_color_override("font_color", GameTheme.COLOR_TECH)
 
 
 func _update_mood() -> void:
-	mood_label.text = "청장: %s" % ResourceManager.get_director_mood_emoji()
+	var mood := ResourceManager.director_mood
+	var mood_text := ""
+	var mood_icon := ""
+	if mood >= 80:
+		mood_text = "매우 좋음"
+		mood_icon = "😊"
+	elif mood >= 60:
+		mood_text = "좋음"
+		mood_icon = "🙂"
+	elif mood >= 40:
+		mood_text = "보통"
+		mood_icon = "😐"
+	elif mood >= 20:
+		mood_text = "불만"
+		mood_icon = "😠"
+	else:
+		mood_text = "격노"
+		mood_icon = "😡"
+	mood_label.text = "%s 청장  %s" % [mood_icon, mood_text]
+
+	if mood >= 60:
+		mood_label.add_theme_color_override("font_color", GameTheme.COLOR_MOOD)
+	elif mood >= 30:
+		mood_label.add_theme_color_override("font_color", GameTheme.WARNING_YELLOW)
+	else:
+		mood_label.add_theme_color_override("font_color", GameTheme.NEGATIVE_RED)
 
 
 func _update_progress() -> void:
@@ -115,6 +170,10 @@ func _update_progress() -> void:
 
 func set_news(text: String) -> void:
 	news_label.text = text
+	# 뉴스 변경 시 페이드 인 효과
+	news_label.modulate.a = 0
+	var tween := create_tween()
+	tween.tween_property(news_label, "modulate:a", 1.0, 0.3)
 
 
 func _on_resource_changed(resource_name: String, _new_value: float) -> void:

@@ -1,6 +1,6 @@
 extends Control
 
-## 복제인간 생산 패널 - 시설 건설 및 생산 현황
+## 복제인간 생산 패널 - 카이로소프트 스타일
 
 signal closed()
 
@@ -11,6 +11,15 @@ signal closed()
 @onready var panel: PanelContainer = $Panel
 
 var _clone_production: Node = null
+
+# 등급별 색상
+var _grade_colors: Array[Color] = [
+	Color(0.6, 0.6, 0.6),    # D - 회색
+	Color(0.4, 0.7, 0.4),    # C - 초록
+	Color(0.3, 0.5, 0.8),    # B - 파란
+	Color(0.7, 0.5, 0.8),    # A - 보라
+	Color(0.85, 0.65, 0.15), # S - 금색
+]
 
 
 func _ready() -> void:
@@ -30,84 +39,97 @@ func show_panel() -> void:
 	panel.modulate.a = 0
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(panel, "scale", Vector2(1, 1), 0.2)
+	tween.tween_property(panel, "scale", Vector2(1, 1), 0.2).set_ease(Tween.EASE_OUT)
 	tween.tween_property(panel, "modulate:a", 1.0, 0.2)
 
 
 func _refresh() -> void:
-	# 기존 항목 제거
 	for child in facility_list.get_children():
 		child.queue_free()
 
-	# 등급별 시설 현황
 	for grade in Constants.CloneGrade.values():
 		var grade_data: Dictionary = Constants.CLONE_DATA[grade]
 		var current_count: int = ResourceManager.clone_facilities.get(grade, 0)
+		var grade_color: Color = _grade_colors[grade] if grade < _grade_colors.size() else Color.WHITE
 
-		var hbox := HBoxContainer.new()
-		hbox.add_theme_constant_override("separation", 10)
+		# 카드 컨테이너
+		var card := PanelContainer.new()
+		var card_style := GameTheme.make_resource_card(grade_color)
+		card.add_theme_stylebox_override("panel", card_style)
 
-		# 등급 이름
-		var name_label := Label.new()
-		name_label.custom_minimum_size = Vector2(120, 0)
-		name_label.add_theme_font_size_override("font_size", 14)
+		var card_vbox := VBoxContainer.new()
+		card_vbox.add_theme_constant_override("separation", 4)
+		card.add_child(card_vbox)
+
+		# 상단: 등급명 + 시설수 + 생산량
+		var top_row := HBoxContainer.new()
+		top_row.add_theme_constant_override("separation", 12)
+
 		var grade_name: String = ["D", "C", "B", "A", "S"][grade]
+		var name_label := Label.new()
+		name_label.custom_minimum_size = Vector2(140, 0)
+		name_label.add_theme_font_size_override("font_size", 15)
+		name_label.add_theme_color_override("font_color", grade_color.darkened(0.2))
 		name_label.text = "[%s] %s" % [grade_name, grade_data["name"]]
-		hbox.add_child(name_label)
+		top_row.add_child(name_label)
 
-		# 현재 시설 수
 		var count_label := Label.new()
-		count_label.custom_minimum_size = Vector2(60, 0)
+		count_label.custom_minimum_size = Vector2(50, 0)
 		count_label.add_theme_font_size_override("font_size", 14)
+		count_label.add_theme_color_override("font_color", GameTheme.TEXT_NORMAL)
 		count_label.text = "%d기" % current_count
-		hbox.add_child(count_label)
+		top_row.add_child(count_label)
 
-		# 월 생산량
 		var output_label := Label.new()
-		output_label.custom_minimum_size = Vector2(90, 0)
+		output_label.custom_minimum_size = Vector2(80, 0)
 		output_label.add_theme_font_size_override("font_size", 13)
-		output_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.6))
-		output_label.text = "월%d명" % (grade_data["output"] * current_count)
-		hbox.add_child(output_label)
+		output_label.add_theme_color_override("font_color", GameTheme.POSITIVE_GREEN)
+		output_label.text = "월 %d명" % (grade_data["output"] * current_count)
+		top_row.add_child(output_label)
 
 		# 건설 버튼
 		var build_btn := Button.new()
 		build_btn.text = "건설 (%d억)" % _get_facility_cost(grade)
-		build_btn.custom_minimum_size = Vector2(130, 35)
-		build_btn.add_theme_font_size_override("font_size", 13)
+		build_btn.custom_minimum_size = Vector2(130, 32)
+		build_btn.add_theme_font_size_override("font_size", 12)
 		build_btn.pressed.connect(_on_build_pressed.bind(grade))
 
-		# 비용 부족하면 비활성화
+		var btn_style := GameTheme.make_colored_button(grade_color)
+		build_btn.add_theme_stylebox_override("normal", btn_style)
+		build_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+
 		if ResourceManager.budget < _get_facility_cost(grade):
 			build_btn.disabled = true
 		if current_count >= 10:
 			build_btn.disabled = true
-			build_btn.text = "최대"
+			build_btn.text = "MAX"
 
-		hbox.add_child(build_btn)
+		top_row.add_child(build_btn)
+		card_vbox.add_child(top_row)
 
-		# 설명
+		# 하단: 설명 + 결함률
 		var desc := Label.new()
 		desc.add_theme_font_size_override("font_size", 11)
-		desc.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7))
-		desc.text = "결함률: %.0f%%" % (grade_data["defect_rate"] * 100)
-		hbox.add_child(desc)
+		desc.add_theme_color_override("font_color", GameTheme.TEXT_LIGHT)
+		desc.text = "%s | 결함률: %.0f%%" % [grade_data["description"], grade_data["defect_rate"] * 100]
+		card_vbox.add_child(desc)
 
-		facility_list.add_child(hbox)
+		facility_list.add_child(card)
 
 	# 요약
 	var total_output := ResourceManager.get_monthly_clone_output()
-	summary_label.text = "월간 총 생산량: %d명 | 월간 자연감소: %d명 | 순변동: %s%d명" % [
+	var net := total_output - Constants.MONTHLY_NATURAL_DECREASE
+	summary_label.text = "월 생산: %d명 | 자연감소: %d명 | 순변동: %s%d명" % [
 		total_output,
 		Constants.MONTHLY_NATURAL_DECREASE,
-		"+" if total_output >= Constants.MONTHLY_NATURAL_DECREASE else "",
-		total_output - Constants.MONTHLY_NATURAL_DECREASE
+		"+" if net >= 0 else "",
+		net
 	]
 
-	if total_output >= Constants.MONTHLY_NATURAL_DECREASE:
-		summary_label.add_theme_color_override("font_color", Color(0.4, 0.9, 0.4))
+	if net >= 0:
+		summary_label.add_theme_color_override("font_color", GameTheme.POSITIVE_GREEN)
 	else:
-		summary_label.add_theme_color_override("font_color", Color(0.9, 0.4, 0.4))
+		summary_label.add_theme_color_override("font_color", GameTheme.NEGATIVE_RED)
 
 
 func _get_facility_cost(grade: int) -> int:

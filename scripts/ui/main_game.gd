@@ -82,7 +82,7 @@ func _ready() -> void:
 	EventSystem.event_triggered.connect(_on_event_triggered)
 
 	# 초기 뉴스
-	hud.set_news("신인류청에 오신 것을 환영합니다, 차장님.\n대한민국의 미래가 당신의 손에 달렸습니다.")
+	hud.set_news("🏛 【신인류청 차장 부임】\n환영합니다, 차장님!\n대한민국 인구 위기 대응 프로젝트를 시작합니다.\n\n현재 인구: 3,500만 명 | 목표: 2080년까지 해결\n아래 메뉴에서 복제인간 생산·배치를 시작하세요.")
 
 
 func _on_next_turn() -> void:
@@ -190,11 +190,11 @@ func _on_research_pressed() -> void:
 		var success_rate := 0.5 - (ResourceManager.tech_level - 1) * 0.05
 		if randf() < maxf(success_rate, 0.1):
 			ResourceManager.tech_level += 1
-			hud.set_news("[연구 성공] 기술 레벨이 올랐습니다! (Lv.%d)\n투자 비용: %.0f억 원" % [ResourceManager.tech_level, cost])
+			hud.set_news("🔬 【연구 성공!】\n기술 레벨이 올랐습니다! → Lv.%d\n투자 비용: %s억 원 | 성공률: %.0f%%" % [ResourceManager.tech_level, _format_number(int(cost)), maxf(success_rate, 0.1) * 100])
 		else:
-			hud.set_news("[연구 진행 중] 아직 성과는 없습니다.\n투자 비용: %.0f억 원 | 현재 기술: Lv.%d" % [cost, ResourceManager.tech_level])
+			hud.set_news("🔬 【연구 진행 중】\n아직 성과가 나오지 않았습니다...\n투자 비용: %s억 원 | 현재: Lv.%d" % [_format_number(int(cost)), ResourceManager.tech_level])
 	else:
-		hud.set_news("[예산 부족] 연구 투자 비용: %.0f억 원\n보유 예산: %.0f억 원" % [cost, ResourceManager.budget])
+		hud.set_news("💸 【예산 부족】\n연구 투자 비용: %s억 원\n보유 예산: %s억 원" % [_format_number(int(cost)), _format_number(int(ResourceManager.budget))])
 	hud.update_all()
 
 
@@ -210,9 +210,9 @@ func _on_diplomacy_pressed() -> void:
 		ResourceManager.approval += approval_gain
 		results.append("윤리 +%d" % ethics_gain)
 		results.append("여론 +%.0f%%" % approval_gain)
-		hud.set_news("[외교 활동] 국제 사회와 대화를 나눴습니다.\n결과: %s | 비용: %.0f억 원" % [", ".join(results), cost])
+		hud.set_news("🌐 【외교 활동 완료】\n국제 사회와 대화를 나눴습니다.\n결과: %s | 비용: %s억 원" % [", ".join(results), _format_number(int(cost))])
 	else:
-		hud.set_news("[예산 부족] 외교 비용: %.0f억 원\n보유 예산: %.0f억 원" % [cost, ResourceManager.budget])
+		hud.set_news("💸 【예산 부족】\n외교 비용: %s억 원\n보유 예산: %s억 원" % [_format_number(int(cost)), _format_number(int(ResourceManager.budget))])
 	hud.update_all()
 
 
@@ -220,4 +220,18 @@ func _on_report_pressed() -> void:
 	if _current_report.size() > 0:
 		report_popup.show_report(_current_report)
 	else:
-		hud.set_news("아직 보고할 내용이 없습니다. 첫 턴을 진행해주세요.")
+		hud.set_news("📋 아직 보고할 내용이 없습니다.\n첫 턴을 진행해주세요.")
+
+
+func _format_number(num: int) -> String:
+	var s := str(absi(num))
+	var result := ""
+	var count := 0
+	for i in range(s.length() - 1, -1, -1):
+		if count > 0 and count % 3 == 0:
+			result = "," + result
+		result = s[i] + result
+		count += 1
+	if num < 0:
+		result = "-" + result
+	return result

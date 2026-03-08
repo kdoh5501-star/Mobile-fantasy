@@ -18,7 +18,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.05, 0.12, 1)
+color = Color(0.45, 0.72, 0.85, 1)
+
+[node name="BottomGradient" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 0.6
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0.35, 0.6, 0.45, 0.4)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -27,64 +37,82 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -200.0
-offset_right = 300.0
-offset_bottom = 200.0
+offset_left = -320.0
+offset_top = -240.0
+offset_right = 320.0
+offset_bottom = 240.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="VBoxContainer"]
+[node name="LogoPanel" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "한국이 저출산위기여서"
+custom_minimum_size = Vector2(0, 60)
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer/LogoPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.3, 0.3, 0.35, 1)
+text = "[ 신인류청 ]  인구위기 대응 프로젝트"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="SubtitleLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
-theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(0.85, 0.25, 0.2, 1)
 text = "복제인간을 만들기로했따~~~"
+horizontal_alignment = 1
+
+[node name="YearLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.35, 0.35, 0.4, 1)
+text = "- 2045년, 대한민국 인구 3,500만 시대 -"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 8)
 
-[node name="DescLabel" type="Label" parent="VBoxContainer"]
+[node name="InfoPanel" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
-text = "2045년, 인구 3,500만 시대.
-정부는 최후의 수단을 꺼내들었다.
-당신은 '신인류청' 차장으로 부임합니다."
+
+[node name="DescLabel" type="Label" parent="VBoxContainer/InfoPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.35, 0.35, 0.4, 1)
+text = "정부는 최후의 수단을 꺼내들었다.
+당신은 '신인류청' 차장으로 부임합니다.
+복제인간으로 인구 위기를 해결하세요!
+
+[블랙코미디 경영 시뮬레이션]"
 horizontal_alignment = 1
 
 [node name="Spacer2" type="Control" parent="VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 8)
 
 [node name="StartButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(250, 50)
+custom_minimum_size = Vector2(280, 52)
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "새 게임 시작"
 
 [node name="ContinueButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(250, 50)
+custom_minimum_size = Vector2(280, 46)
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "이어하기"
 disabled = true
 
 [node name="QuitButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(250, 50)
+custom_minimum_size = Vector2(280, 46)
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "종료"
 
 [node name="VersionLabel" type="Label" parent="."]
@@ -94,11 +122,12 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = -30.0
+offset_right = -10.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-text = "v0.1 - Prototype"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.4, 0.55, 0.65, 1)
+text = "v0.2 - Kairosoft Edition"
 horizontal_alignment = 2
 
 [node name="FadeOverlay" type="ColorRect" parent="."]

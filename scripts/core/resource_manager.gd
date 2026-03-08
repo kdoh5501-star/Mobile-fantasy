@@ -73,6 +73,13 @@ func get_director_mood_emoji() -> String:
 		return "😡"
 
 
+func get_total_deployed() -> int:
+	var total := 0
+	for sector in active_clones:
+		total += active_clones[sector] as int
+	return total
+
+
 func get_monthly_clone_output() -> int:
 	var total := 0
 	for grade in clone_facilities:

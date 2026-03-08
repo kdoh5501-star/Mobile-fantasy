@@ -15,20 +15,22 @@ script = ExtResource("1")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 50.0
+offset_bottom = 52.0
 grow_horizontal = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 0
 
 [node name="TopBg" type="ColorRect" parent="TopBar"]
 layout_mode = 2
 size_flags_horizontal = 3
-color = Color(0.1, 0.1, 0.2, 0.9)
+color = Color(0.25, 0.45, 0.7, 1)
 
 [node name="DateLabel" type="Label" parent="TopBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(150, 0)
+custom_minimum_size = Vector2(160, 0)
 theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "2045년 1월"
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ProgressBar" type="ProgressBar" parent="TopBar"]
@@ -41,78 +43,83 @@ show_percentage = false
 
 [node name="BudgetLabel" type="Label" parent="TopBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(180, 0)
+custom_minimum_size = Vector2(200, 0)
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_color = Color(1, 0.95, 0.7, 1)
 text = "예산: 420억 원"
-vertical_alignment = 1
 horizontal_alignment = 2
+vertical_alignment = 1
 
 [node name="ResourcePanel" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -180.0
-offset_top = 60.0
-offset_right = -10.0
-offset_bottom = 280.0
+offset_left = -195.0
+offset_top = 58.0
+offset_right = -5.0
+offset_bottom = 310.0
 grow_horizontal = 0
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 
 [node name="PanelBg" type="ColorRect" parent="ResourcePanel"]
 layout_mode = 2
-custom_minimum_size = Vector2(170, 220)
-color = Color(0.08, 0.08, 0.15, 0.85)
+custom_minimum_size = Vector2(190, 252)
+color = Color(0.96, 0.93, 0.88, 0.95)
 
 [node name="PanelTitle" type="Label" parent="ResourcePanel"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
-text = "=== 현황 ==="
+theme_override_colors/font_color = Color(0.25, 0.45, 0.7, 1)
+text = "[ 현황 ]"
 horizontal_alignment = 1
 
 [node name="PopulationLabel" type="Label" parent="ResourcePanel"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.3, 0.55, 0.8, 1)
 text = "인구: 35.0백만"
 
 [node name="ApprovalLabel" type="Label" parent="ResourcePanel"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.4, 0.7, 0.35, 1)
 text = "여론: 45.0%"
 
 [node name="EthicsLabel" type="Label" parent="ResourcePanel"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.6, 0.4, 0.75, 1)
 text = "윤리: 70"
 
 [node name="TechLabel" type="Label" parent="ResourcePanel"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.3, 0.7, 0.8, 1)
 text = "기술: Lv.1"
 
 [node name="MoodLabel" type="Label" parent="ResourcePanel"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
-text = "청장: 😐"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.85, 0.5, 0.3, 1)
+text = "청장: 보통"
 
 [node name="CenterArea" type="PanelContainer" parent="."]
 layout_mode = 1
-anchor_left = 0.05
-anchor_top = 0.1
-anchor_right = 0.82
-anchor_bottom = 0.82
+anchor_left = 0.01
+anchor_top = 0.08
+anchor_right = 0.84
+anchor_bottom = 0.85
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="CenterBg" type="ColorRect" parent="CenterArea"]
 layout_mode = 2
-color = Color(0.06, 0.06, 0.1, 0.7)
+color = Color(0.96, 0.94, 0.9, 0.9)
 
 [node name="NewsLabel" type="Label" parent="CenterArea"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.3, 0.3, 0.35, 1)
 text = "신인류청에 오신 것을 환영합니다.
 차장님, 오늘부터 대한민국의 미래가 당신의 손에 달렸습니다.
 
@@ -129,50 +136,49 @@ layout_mode = 1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -70.0
+offset_top = -68.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/separation = 10
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="BottomBg" type="ColorRect" parent="BottomBar"]
 layout_mode = 2
 size_flags_horizontal = 3
-color = Color(0.1, 0.1, 0.2, 0.9)
+color = Color(0.92, 0.88, 0.82, 0.95)
 
 [node name="ProductionBtn" type="Button" parent="BottomBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(100, 55)
-theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(105, 52)
+theme_override_font_sizes/font_size = 14
 text = "생산"
 
 [node name="DeploymentBtn" type="Button" parent="BottomBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(100, 55)
-theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(105, 52)
+theme_override_font_sizes/font_size = 14
 text = "배치"
 
 [node name="ResearchBtn" type="Button" parent="BottomBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(100, 55)
-theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(105, 52)
+theme_override_font_sizes/font_size = 14
 text = "연구"
 
 [node name="DiplomacyBtn" type="Button" parent="BottomBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(100, 55)
-theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(105, 52)
+theme_override_font_sizes/font_size = 14
 text = "외교"
 
 [node name="ReportBtn" type="Button" parent="BottomBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(100, 55)
-theme_override_font_sizes/font_size = 15
+custom_minimum_size = Vector2(105, 52)
+theme_override_font_sizes/font_size = 14
 text = "보고"
 
 [node name="NextTurnBtn" type="Button" parent="BottomBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(130, 55)
+custom_minimum_size = Vector2(140, 52)
 theme_override_font_sizes/font_size = 16
-theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
 text = "다음 턴 >>"
