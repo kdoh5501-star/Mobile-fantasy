@@ -44,7 +44,7 @@ func process_turn() -> void:
 		return
 
 	# 1. 월간 자원 변동 적용
-	var report := ResourceManager.apply_monthly_changes()
+	var report: Dictionary = ResourceManager.apply_monthly_changes()
 
 	# 2. 이벤트 체크
 	var events := EventSystem.check_events(current_year, current_month, current_turn)

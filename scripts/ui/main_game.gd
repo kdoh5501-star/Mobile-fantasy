@@ -60,7 +60,7 @@ func _ready() -> void:
 
 func _on_next_turn() -> void:
 	# 턴 처리
-	var report := turn_manager.process_full_turn()
+	var report: Dictionary = turn_manager.process_full_turn()
 	_current_report = report
 
 	# 이벤트가 있으면 먼저 처리
