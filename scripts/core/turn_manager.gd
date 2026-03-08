@@ -58,11 +58,11 @@ func _process_budget_phase() -> void:
 func _process_production_phase() -> void:
 	turn_phase_changed.emit("production")
 	if clone_production:
-		var results := clone_production.process_monthly_production()
+		var results: Array = clone_production.process_monthly_production()
 		_monthly_report["production"] = results
 
 		# 생산된 복제인간 수 합산
-		var total_produced := 0
+		var total_produced: int = 0
 		for result in results:
 			total_produced += result.get("produced", 0)
 		ResourceManager.total_clones_produced += total_produced
@@ -73,7 +73,7 @@ func _process_production_phase() -> void:
 func _process_deployment_phase() -> void:
 	turn_phase_changed.emit("deployment")
 	if deployment:
-		var results := deployment.apply_monthly_sector_effects()
+		var results: Dictionary = deployment.apply_monthly_sector_effects()
 		_monthly_report["deployment_effects"] = results
 
 
