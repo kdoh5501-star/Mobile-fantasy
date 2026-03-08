@@ -1,0 +1,36 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; but it can also be manually edited if needed.
+
+config_version=5
+
+[application]
+
+config/name="한국이 저출산위기여서 복제인간을 만들기로했따~~~"
+config/description="블랙코미디 경영 시뮬레이션 - 신인류청에서 복제인간으로 인구 위기를 해결하라!"
+run/main_scene="res://scenes/main/main_game.tscn"
+config/features=PackedStringArray("4.2", "GL Compatibility")
+config/icon="res://assets/ui/icon.png"
+
+[autoload]
+
+GameManager="*res://scripts/core/game_manager.gd"
+ResourceManager="*res://scripts/core/resource_manager.gd"
+EventSystem="*res://scripts/systems/event_system.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/resizable=true
+window/stretch/mode="viewport"
+window/stretch/aspect="expand"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+
+[internationalization]
+
+locale/default="ko"
