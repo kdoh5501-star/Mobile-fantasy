@@ -1,6 +1,7 @@
 extends Control
 
 ## 복제인간 사회 배치 패널 - 카이로소프트 스타일
+## 복제인간만 배치 가능 (자연인구는 배치 불가)
 
 signal closed()
 
@@ -14,15 +15,14 @@ var _deployment_system: Node = null
 
 # 분야별 색상
 var _sector_colors: Dictionary = {
-	Constants.Sector.MANUFACTURING: Color(0.7, 0.5, 0.2),    # 제조업 - 갈색
-	Constants.Sector.MILITARY: Color(0.5, 0.3, 0.3),         # 군대 - 어두운 빨강
-	Constants.Sector.MEDICAL: Color(0.3, 0.65, 0.5),         # 의료 - 청록
-	Constants.Sector.RESEARCH: Color(0.4, 0.5, 0.75),        # 연구 - 파란
-	Constants.Sector.FAMILY: Color(0.75, 0.45, 0.6),         # 출산 장려 - 분홍
-	Constants.Sector.POLITICS: Color(0.55, 0.45, 0.65),      # 정치 - 보라
+	Constants.Sector.MANUFACTURING: Color(0.7, 0.5, 0.2),
+	Constants.Sector.MILITARY: Color(0.5, 0.3, 0.3),
+	Constants.Sector.MEDICAL: Color(0.3, 0.65, 0.5),
+	Constants.Sector.RESEARCH: Color(0.4, 0.5, 0.75),
+	Constants.Sector.FAMILY: Color(0.75, 0.45, 0.6),
+	Constants.Sector.POLITICS: Color(0.55, 0.45, 0.65),
 }
 
-# 분야별 아이콘 텍스트
 var _sector_icons: Dictionary = {
 	Constants.Sector.MANUFACTURING: "⚙",
 	Constants.Sector.MILITARY: "⚔",
@@ -58,17 +58,15 @@ func _refresh() -> void:
 	for child in sector_list.get_children():
 		child.queue_free()
 
-	var total_deployed: int = 0
-	var available: int = ResourceManager.population - ResourceManager.get_total_deployed()
+	var available: int = ResourceManager.get_available_clones()
 
 	for sector in Constants.Sector.values():
 		var sector_data: Dictionary = Constants.SECTOR_DATA[sector]
 		var current: int = ResourceManager.active_clones.get(sector, 0)
 		var sector_color: Color = _sector_colors.get(sector, Color.WHITE)
 		var icon_text: String = _sector_icons.get(sector, "●")
-		total_deployed += current
 
-		# 카드 컨테이너
+		# 카드
 		var card := PanelContainer.new()
 		var card_style := GameTheme.make_resource_card(sector_color)
 		card.add_theme_stylebox_override("panel", card_style)
@@ -77,7 +75,7 @@ func _refresh() -> void:
 		card_vbox.add_theme_constant_override("separation", 4)
 		card.add_child(card_vbox)
 
-		# 상단: 아이콘 + 분야명 + 현재 배치 수
+		# 상단: 아이콘 + 분야명 + 배치수
 		var top_row := HBoxContainer.new()
 		top_row.add_theme_constant_override("separation", 10)
 
@@ -125,12 +123,13 @@ func _refresh() -> void:
 
 		sector_list.add_child(card)
 
-	# 요약
-	var total: int = ResourceManager.get_total_deployed()
-	summary_label.text = "배치 총원: %s명 | 미배치: %s명 | 총 인구: %s명" % [
-		_format_number(total),
-		_format_number(ResourceManager.population - total),
-		_format_number(ResourceManager.population)
+	# 요약 - 복제인간만 표시
+	var total_deployed := ResourceManager.get_total_deployed()
+	var total_clones := ResourceManager.clone_population
+	summary_label.text = "배치: %s명 | 미배치: %s명 | 복제인간 총: %s명" % [
+		_format_number(total_deployed),
+		_format_number(available),
+		_format_number(total_clones)
 	]
 	summary_label.add_theme_color_override("font_color", GameTheme.TEXT_NORMAL)
 
@@ -147,6 +146,8 @@ func _get_effects_text(sector_data: Dictionary) -> String:
 		parts.append("여론 %s%.0f%%" % ["+" if approval_change > 0 else "", approval_change])
 	if ethics_change != 0:
 		parts.append("윤리 %s%d" % ["+" if ethics_change > 0 else "", ethics_change])
+	if sector_data.get("birth_bonus", false):
+		parts.append("출산촉진")
 
 	return " ".join(parts) if parts.size() > 0 else "효과 없음"
 

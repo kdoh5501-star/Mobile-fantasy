@@ -26,22 +26,29 @@ func show_report(report: Dictionary) -> void:
 
 	# ━━━ 인구 현황 ━━━
 	text += "[b]━━━ 인구 현황 ━━━[/b]\n"
-	var natural_decrease: int = report.get("natural_decrease", 0)
-	var clone_output: int = report.get("clone_output", 0)
-	var clones_produced: int = report.get("clones_produced", 0)
-	var net: int = report.get("net_change", report.get("net_population_change", 0))
+	var nat := ResourceManager.natural_population
+	var clones := ResourceManager.clone_population
+	var total := nat + clones
 
-	text += "  자연감소  [color=#cc3333]-%s명[/color]\n" % _format_number(natural_decrease)
-	if clone_output > 0 or clones_produced > 0:
-		var produced := clone_output if clone_output > 0 else clones_produced
-		text += "  복제생산  [color=#33aa33]+%s명[/color]\n" % _format_number(produced)
+	text += "  자연인구  [color=#5588cc]%s명[/color]\n" % _format_number(nat)
+	text += "  복제인간  [color=#cc8833]%s명[/color]\n" % _format_number(clones)
+	text += "  총 인구   [b]%s명[/b]\n" % _format_number(total)
+
+	var natural_decrease: int = report.get("natural_decrease", 0)
+	var clones_produced: int = report.get("clones_produced", 0)
+	var clone_deaths: int = report.get("clone_deaths", 0)
+	var net: int = report.get("net_population_change", 0)
+
+	text += "\n  자연감소  [color=#cc3333]-%s명[/color] (저출산·고령화)\n" % _format_number(natural_decrease)
+	if clones_produced > 0:
+		text += "  복제생산  [color=#33aa33]+%s명[/color]\n" % _format_number(clones_produced)
+	if clone_deaths > 0:
+		text += "  클론사망  [color=#cc6633]-%s명[/color] (수명만료)\n" % _format_number(clone_deaths)
 
 	if net >= 0:
 		text += "  순변동    [color=#33aa33]+%s명[/color]\n" % _format_number(net)
 	else:
 		text += "  순변동    [color=#cc3333]%s명[/color]\n" % _format_number(net)
-
-	text += "  현재 인구  [b]%s명[/b]\n" % _format_number(ResourceManager.population)
 
 	# ━━━ 예산 ━━━
 	text += "\n[b]━━━ 예산 현황 ━━━[/b]\n"
@@ -52,36 +59,39 @@ func show_report(report: Dictionary) -> void:
 	# ━━━ 종합 현황 ━━━
 	text += "\n[b]━━━ 종합 현황 ━━━[/b]\n"
 
-	# 여론
 	var app := ResourceManager.approval
 	var app_color := "#33aa33" if app >= 60 else ("#cc9900" if app >= 40 else "#cc3333")
 	text += "  여론 지지  [color=%s]%.1f%%[/color]\n" % [app_color, app]
 
-	# 윤리
 	var eth := ResourceManager.ethics
 	var eth_color := "#8866bb" if eth >= 60 else ("#cc9900" if eth >= 30 else "#cc3333")
 	text += "  윤리 수치  [color=%s]%d[/color]\n" % [eth_color, eth]
 
-	# 기술
-	text += "  기술 레벨  [color=#4499bb]Lv.%d[/color]\n" % ResourceManager.tech_level
+	text += "  기술 레벨  [color=#4499bb]Lv.%d[/color]" % ResourceManager.tech_level
+	var tech_effect: String = Constants.TECH_EFFECTS.get(ResourceManager.tech_level, "")
+	if tech_effect != "":
+		text += " (%s)" % tech_effect
+	text += "\n"
 
-	# 청장 기분
 	var mood := ResourceManager.director_mood
-	var mood_text := ""
-	if mood >= 80:
-		mood_text = "매우 좋음"
-	elif mood >= 60:
-		mood_text = "좋음"
-	elif mood >= 40:
-		mood_text = "보통"
-	elif mood >= 20:
-		mood_text = "불만"
-	else:
-		mood_text = "격노"
+	var mood_text := "매우 좋음" if mood >= 80 else ("좋음" if mood >= 60 else ("보통" if mood >= 40 else ("불만" if mood >= 20 else "격노")))
 	var mood_color := "#dd8833" if mood >= 40 else "#cc3333"
 	text += "  청장 기분  [color=%s]%s[/color]\n" % [mood_color, mood_text]
 
-	# 진행률
+	# 복제인간 사기
+	var morale: int = report.get("clone_morale", ResourceManager.clone_morale)
+	var morale_color := "#33aa33" if morale >= 60 else ("#cc9900" if morale >= 30 else "#cc3333")
+	if clones > 0:
+		text += "  클론 사기  [color=%s]%d[/color]\n" % [morale_color, morale]
+
+	if report.get("clone_unrest", false):
+		text += "  [color=#cc3333]⚠ 복제인간 불만 폭발! 여론·윤리 하락 중[/color]\n"
+
+	# 배치 현황
+	var deployed := ResourceManager.get_total_deployed()
+	if deployed > 0:
+		text += "\n  배치 현황  %s명 / %s명 복제인간\n" % [_format_number(deployed), _format_number(clones)]
+
 	text += "  진행률    [color=#4488aa]%.1f%%[/color]\n" % GameManager.get_progress_percent()
 
 	# ━━━ 이벤트 ━━━
@@ -96,11 +106,15 @@ func show_report(report: Dictionary) -> void:
 	if production.size() > 0:
 		text += "\n[b]━━━ 생산 상세 ━━━[/b]\n"
 		for prod in production:
-			text += "  %s: %d명 생산" % [prod.get("name", "?"), prod.get("produced", 0)]
-			var defects: int = prod.get("defects", 0)
-			if defects > 0:
-				text += " [color=#cc3333](결함 %d명)[/color]" % defects
-			text += "\n"
+			var reason: String = prod.get("reason", "")
+			if reason != "":
+				text += "  %s: [color=#cc3333]%s[/color]\n" % [prod.get("name", "?"), reason]
+			else:
+				text += "  %s: %s명 생산" % [prod.get("name", "?"), _format_number(prod.get("produced", 0))]
+				var defects: int = prod.get("defects", 0)
+				if defects > 0:
+					text += " [color=#cc3333](결함 %s명)[/color]" % _format_number(defects)
+				text += "\n"
 
 	report_text.text = text
 

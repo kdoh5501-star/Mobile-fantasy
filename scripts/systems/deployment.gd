@@ -1,6 +1,6 @@
 extends Node
 
-## 복제인간 사회 배치 시스템
+## 복제인간 사회 배치 시스템 (복제인간만 배치 가능)
 
 signal clone_deployed(sector: int, count: int)
 signal sector_effect_applied(sector: int, effects: Dictionary)
@@ -9,10 +9,10 @@ signal sector_effect_applied(sector: int, effects: Dictionary)
 const MAX_PER_SECTOR := 5_000_000
 
 # 배치 비용 (1명당, 억 원)
-const DEPLOY_COST_PER_CLONE := 0.001  # 100만 원
+const DEPLOY_COST_PER_CLONE := 0.0005  # 50만 원
 
 
-## 복제인간 배치
+## 복제인간 배치 (clone_population에서만 배치)
 func deploy_clones(sector: int, count: int) -> Dictionary:
 	var current: int = ResourceManager.active_clones.get(sector, 0)
 
@@ -20,6 +20,14 @@ func deploy_clones(sector: int, count: int) -> Dictionary:
 		return {
 			"success": false,
 			"reason": "해당 분야의 최대 배치 인원(%s명)을 초과합니다." % _format_number(MAX_PER_SECTOR)
+		}
+
+	# 배치 가능한 복제인간 수 체크
+	var available := ResourceManager.get_available_clones()
+	if available < count:
+		return {
+			"success": false,
+			"reason": "배치 가능한 복제인간이 부족합니다. (가용: %s명)" % _format_number(available)
 		}
 
 	var cost := count * DEPLOY_COST_PER_CLONE
@@ -78,11 +86,17 @@ func apply_monthly_sector_effects() -> Array[Dictionary]:
 			effects["ethics"] = ethics_change
 
 		# 기술 효과 (연구 분야)
-		if sector_data.has("tech_bonus") and count >= 10000:
-			var tech_chance := minf(scale * 0.01, 0.1)  # 최대 10% 확률
+		if sector_data.has("tech_bonus") and count >= 5000:
+			var tech_chance := minf(scale * 0.02, 0.15)  # 최대 15% 확률
 			if randf() < tech_chance:
 				ResourceManager.tech_level += 1
 				effects["tech_level"] = 1
+
+		# 출산 장려 효과 (가정 분야)
+		if sector_data.get("birth_bonus", false) and count >= 1000:
+			var birth_bonus := int(scale * 50)  # 1만명당 50명 자연출산 촉진
+			ResourceManager.natural_population += birth_bonus
+			effects["natural_birth"] = birth_bonus
 
 		var result: Dictionary = {
 			"sector": sector,
@@ -101,6 +115,7 @@ func apply_monthly_sector_effects() -> Array[Dictionary]:
 func get_deployment_summary() -> Dictionary:
 	var summary: Dictionary = {
 		"total_deployed": 0,
+		"available": ResourceManager.get_available_clones(),
 		"sectors": {}
 	}
 

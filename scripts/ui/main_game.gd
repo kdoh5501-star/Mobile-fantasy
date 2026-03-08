@@ -82,15 +82,16 @@ func _ready() -> void:
 	EventSystem.event_triggered.connect(_on_event_triggered)
 
 	# 초기 뉴스
-	hud.set_news("🏛 【신인류청 차장 부임】\n환영합니다, 차장님!\n대한민국 인구 위기 대응 프로젝트를 시작합니다.\n\n현재 인구: 3,500만 명 | 목표: 2080년까지 해결\n아래 메뉴에서 복제인간 생산·배치를 시작하세요.")
+	hud.set_news("🏛 【신인류청 차장 부임】\n환영합니다, 차장님!\n\n자연인구: %s명 (매월 %s명 감소 중)\n복제인간: 0명\n\n▶ '생산' 버튼으로 복제시설을 건설하세요\n▶ '연구' 버튼으로 기술을 올려 상위 등급을 해금하세요" % [
+		_format_number(Constants.INITIAL_NATURAL_POPULATION),
+		_format_number(Constants.MONTHLY_NATURAL_DECREASE)
+	])
 
 
 func _on_next_turn() -> void:
-	# 턴 처리
 	var report: Dictionary = turn_manager.process_full_turn()
 	_current_report = report
 
-	# 이벤트가 있으면 먼저 처리
 	var events: Array = report.get("events", [])
 	_pending_events.clear()
 	for event in events:
@@ -101,12 +102,10 @@ func _on_next_turn() -> void:
 	else:
 		_show_report()
 
-	# 턴 진행
 	GameManager.process_turn()
 
 
 func _on_event_triggered(event_data: Dictionary) -> void:
-	# 이벤트 시스템에서 직접 트리거된 이벤트
 	pass
 
 
@@ -119,13 +118,10 @@ func _show_next_event() -> void:
 
 
 func _on_event_choice_made(_event_data: Dictionary, _choice_index: int) -> void:
-	# 선택 후 결과가 표시되고 확인 버튼이 나타남
-	# 실제 진행은 _on_event_popup_closed에서 처리
 	pass
 
 
 func _on_event_popup_closed() -> void:
-	# 이벤트 팝업이 닫히면 다음 이벤트 또는 보고서 표시
 	if _pending_events.size() > 0:
 		_show_next_event()
 	else:
@@ -137,13 +133,19 @@ func _show_report() -> void:
 
 
 func _on_report_closed() -> void:
-	# 보고서 닫은 후 다음 이벤트가 있으면 표시
 	if _pending_events.size() > 0:
 		_show_next_event()
 	else:
-		# 랜덤 뉴스 표시
+		# 랜덤 뉴스 + 현황 요약
 		var news: String = _news_messages[randi() % _news_messages.size()]
-		hud.set_news(news)
+		var clones := ResourceManager.clone_population
+		var available := ResourceManager.get_available_clones()
+		var status := "\n\n📊 복제인간: %s명 (배치가능: %s명) | 기술: Lv.%d" % [
+			_format_number(clones),
+			_format_number(available),
+			ResourceManager.tech_level
+		]
+		hud.set_news(news + status)
 		hud.update_all()
 
 
@@ -152,7 +154,6 @@ func _on_turn_ended(_year: int, _month: int, _report: Dictionary) -> void:
 
 
 func _on_game_ended(ending_type: String, ending_data: Dictionary) -> void:
-	# 엔딩 또는 게임오버 처리
 	var ending_event: Dictionary = {
 		"id": "ending_%s" % ending_type,
 		"type": "ending",
@@ -163,7 +164,6 @@ func _on_game_ended(ending_type: String, ending_data: Dictionary) -> void:
 		]
 	}
 	event_popup.show_event(ending_event)
-	# 타이틀로 돌아가는 처리
 	event_popup.closed.connect(_return_to_title, CONNECT_ONE_SHOT)
 
 
@@ -177,24 +177,51 @@ func _on_production_pressed() -> void:
 
 
 func _on_deployment_pressed() -> void:
+	if ResourceManager.clone_population <= 0:
+		hud.set_news("⚠ 【배치 불가】\n아직 복제인간이 없습니다!\n'생산' 메뉴에서 시설을 건설하고 복제인간을 생산하세요.")
+		return
 	deployment_panel.show_panel()
 
 
 func _on_research_pressed() -> void:
-	var cost := 50.0
-	# 기술 레벨이 높으면 비용 증가
-	cost += (ResourceManager.tech_level - 1) * 20.0
-	if ResourceManager.budget >= cost:
-		ResourceManager.budget -= cost
-		# 기술 레벨 낮을수록 성공률 높음
-		var success_rate := 0.5 - (ResourceManager.tech_level - 1) * 0.05
-		if randf() < maxf(success_rate, 0.1):
-			ResourceManager.tech_level += 1
-			hud.set_news("🔬 【연구 성공!】\n기술 레벨이 올랐습니다! → Lv.%d\n투자 비용: %s억 원 | 성공률: %.0f%%" % [ResourceManager.tech_level, _format_number(int(cost)), maxf(success_rate, 0.1) * 100])
-		else:
-			hud.set_news("🔬 【연구 진행 중】\n아직 성과가 나오지 않았습니다...\n투자 비용: %s억 원 | 현재: Lv.%d" % [_format_number(int(cost)), ResourceManager.tech_level])
+	var lv := ResourceManager.tech_level
+	if lv >= 10:
+		hud.set_news("🔬 【최대 기술 레벨】\n기술 레벨이 이미 최대(Lv.10)입니다!\n모든 복제 등급이 해금되었습니다.")
+		return
+
+	var cost := Constants.RESEARCH_BASE_COST + (lv - 1) * Constants.RESEARCH_COST_PER_LEVEL
+	if ResourceManager.budget < cost:
+		hud.set_news("💸 【예산 부족】\n연구 비용: %s억 원\n보유 예산: %s억 원" % [_format_number(int(cost)), _format_number(int(ResourceManager.budget))])
+		return
+
+	ResourceManager.budget -= cost
+
+	# 성공률: 레벨 낮을수록 높음 (Lv1: 60%, Lv9: 20%)
+	var success_rate := 0.65 - (lv - 1) * 0.05
+	# 연구 분야에 클론 배치 시 보너스
+	var research_clones: int = ResourceManager.active_clones.get(Constants.Sector.RESEARCH, 0)
+	if research_clones >= 5000:
+		success_rate += 0.1
+	success_rate = clampf(success_rate, 0.15, 0.80)
+
+	if randf() < success_rate:
+		ResourceManager.tech_level += 1
+		var new_lv := ResourceManager.tech_level
+		var effect: String = Constants.TECH_EFFECTS.get(new_lv, "")
+		var unlock_msg := ""
+		# 새 등급 해금 체크
+		for grade in Constants.CloneGrade.values():
+			var req: int = Constants.GRADE_TECH_REQUIREMENT.get(grade, 99)
+			if req == new_lv:
+				var grade_name: String = Constants.CLONE_DATA[grade]["name"]
+				unlock_msg = "\n🎉 새 등급 해금: %s!" % grade_name
+		hud.set_news("🔬 【연구 성공!】\n기술 레벨 → Lv.%d\n효과: %s%s\n비용: %s억 원 | 성공률: %.0f%%" % [
+			new_lv, effect, unlock_msg, _format_number(int(cost)), success_rate * 100
+		])
 	else:
-		hud.set_news("💸 【예산 부족】\n연구 투자 비용: %s억 원\n보유 예산: %s억 원" % [_format_number(int(cost)), _format_number(int(ResourceManager.budget))])
+		hud.set_news("🔬 【연구 실패...】\n아쉽지만 이번에는 성과가 없었습니다.\n비용: %s억 원 | 현재: Lv.%d | 성공률: %.0f%%\n\n💡 연구 분야에 복제인간 5,000명 이상 배치 시 성공률 +10%%" % [
+			_format_number(int(cost)), lv, success_rate * 100
+		])
 	hud.update_all()
 
 
@@ -204,13 +231,17 @@ func _on_diplomacy_pressed() -> void:
 		ResourceManager.budget -= cost
 		var results: Array[String] = []
 		# 윤리가 낮으면 효과 증가
-		var ethics_gain := 3 + (1 if ResourceManager.ethics < 50 else 0)
-		var approval_gain := 2.0 + (1.0 if ResourceManager.approval < 40.0 else 0.0)
+		var ethics_gain := 3 + (2 if ResourceManager.ethics < 40 else 0)
+		var approval_gain := 2.0 + (2.0 if ResourceManager.approval < 35.0 else 0.0)
+		# 복제인간 사기 회복
+		var morale_gain := 3
 		ResourceManager.ethics += ethics_gain
 		ResourceManager.approval += approval_gain
+		ResourceManager.clone_morale = clampi(ResourceManager.clone_morale + morale_gain, 0, 100)
 		results.append("윤리 +%d" % ethics_gain)
 		results.append("여론 +%.0f%%" % approval_gain)
-		hud.set_news("🌐 【외교 활동 완료】\n국제 사회와 대화를 나눴습니다.\n결과: %s | 비용: %s억 원" % [", ".join(results), _format_number(int(cost))])
+		results.append("클론 사기 +%d" % morale_gain)
+		hud.set_news("🌐 【외교 활동 완료】\n국제 사회와 대화를 나눴습니다.\n결과: %s\n비용: %s억 원" % [", ".join(results), _format_number(int(cost))])
 	else:
 		hud.set_news("💸 【예산 부족】\n외교 비용: %s억 원\n보유 예산: %s억 원" % [_format_number(int(cost)), _format_number(int(ResourceManager.budget))])
 	hud.update_all()

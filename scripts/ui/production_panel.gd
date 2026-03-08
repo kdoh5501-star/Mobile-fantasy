@@ -47,14 +47,22 @@ func _refresh() -> void:
 	for child in facility_list.get_children():
 		child.queue_free()
 
+	var tech_multiplier := ResourceManager.get_tech_output_multiplier()
+
 	for grade in Constants.CloneGrade.values():
 		var grade_data: Dictionary = Constants.CLONE_DATA[grade]
 		var current_count: int = ResourceManager.clone_facilities.get(grade, 0)
 		var grade_color: Color = _grade_colors[grade] if grade < _grade_colors.size() else Color.WHITE
+		var is_unlocked := _clone_production.is_grade_unlocked(grade) if _clone_production else false
+		var required_tech: int = Constants.GRADE_TECH_REQUIREMENT.get(grade, 99)
 
 		# 카드 컨테이너
 		var card := PanelContainer.new()
-		var card_style := GameTheme.make_resource_card(grade_color)
+		var card_style: StyleBoxFlat
+		if is_unlocked:
+			card_style = GameTheme.make_resource_card(grade_color)
+		else:
+			card_style = GameTheme.make_resource_card(Color(0.5, 0.5, 0.5))
 		card.add_theme_stylebox_override("panel", card_style)
 
 		var card_vbox := VBoxContainer.new()
@@ -69,61 +77,82 @@ func _refresh() -> void:
 		var name_label := Label.new()
 		name_label.custom_minimum_size = Vector2(140, 0)
 		name_label.add_theme_font_size_override("font_size", 15)
-		name_label.add_theme_color_override("font_color", grade_color.darkened(0.2))
-		name_label.text = "[%s] %s" % [grade_name, grade_data["name"]]
+
+		if is_unlocked:
+			name_label.add_theme_color_override("font_color", grade_color.darkened(0.2))
+			name_label.text = "[%s] %s" % [grade_name, grade_data["name"]]
+		else:
+			name_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+			name_label.text = "[%s] ??? (Lv.%d 필요)" % [grade_name, required_tech]
+
 		top_row.add_child(name_label)
 
-		var count_label := Label.new()
-		count_label.custom_minimum_size = Vector2(50, 0)
-		count_label.add_theme_font_size_override("font_size", 14)
-		count_label.add_theme_color_override("font_color", GameTheme.TEXT_NORMAL)
-		count_label.text = "%d기" % current_count
-		top_row.add_child(count_label)
+		if is_unlocked:
+			var count_label := Label.new()
+			count_label.custom_minimum_size = Vector2(50, 0)
+			count_label.add_theme_font_size_override("font_size", 14)
+			count_label.add_theme_color_override("font_color", GameTheme.TEXT_NORMAL)
+			count_label.text = "%d기" % current_count
+			top_row.add_child(count_label)
 
-		var output_label := Label.new()
-		output_label.custom_minimum_size = Vector2(80, 0)
-		output_label.add_theme_font_size_override("font_size", 13)
-		output_label.add_theme_color_override("font_color", GameTheme.POSITIVE_GREEN)
-		output_label.text = "월 %d명" % (grade_data["output"] * current_count)
-		top_row.add_child(output_label)
+			var monthly_output := int(grade_data["output"] * current_count * tech_multiplier)
+			var output_label := Label.new()
+			output_label.custom_minimum_size = Vector2(80, 0)
+			output_label.add_theme_font_size_override("font_size", 13)
+			output_label.add_theme_color_override("font_color", GameTheme.POSITIVE_GREEN)
+			output_label.text = "월 %s명" % _format_number(monthly_output)
+			top_row.add_child(output_label)
 
-		# 건설 버튼
-		var build_btn := Button.new()
-		build_btn.text = "건설 (%d억)" % _get_facility_cost(grade)
-		build_btn.custom_minimum_size = Vector2(130, 32)
-		build_btn.add_theme_font_size_override("font_size", 12)
-		build_btn.pressed.connect(_on_build_pressed.bind(grade))
+			# 건설 버튼
+			var build_cost := _get_facility_cost(grade)
+			var build_btn := Button.new()
+			build_btn.text = "건설 (%s억)" % _format_number(build_cost)
+			build_btn.custom_minimum_size = Vector2(140, 32)
+			build_btn.add_theme_font_size_override("font_size", 12)
+			build_btn.pressed.connect(_on_build_pressed.bind(grade))
 
-		var btn_style := GameTheme.make_colored_button(grade_color)
-		build_btn.add_theme_stylebox_override("normal", btn_style)
-		build_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+			var btn_style := GameTheme.make_colored_button(grade_color)
+			build_btn.add_theme_stylebox_override("normal", btn_style)
+			build_btn.add_theme_color_override("font_color", Color(1, 1, 1))
 
-		if ResourceManager.budget < _get_facility_cost(grade):
-			build_btn.disabled = true
-		if current_count >= 10:
-			build_btn.disabled = true
-			build_btn.text = "MAX"
+			if ResourceManager.budget < build_cost:
+				build_btn.disabled = true
+			if current_count >= Constants.MAX_FACILITIES:
+				build_btn.disabled = true
+				build_btn.text = "MAX (%d기)" % Constants.MAX_FACILITIES
 
-		top_row.add_child(build_btn)
+			top_row.add_child(build_btn)
+
 		card_vbox.add_child(top_row)
 
 		# 하단: 설명 + 결함률
 		var desc := Label.new()
 		desc.add_theme_font_size_override("font_size", 11)
 		desc.add_theme_color_override("font_color", GameTheme.TEXT_LIGHT)
-		desc.text = "%s | 결함률: %.0f%%" % [grade_data["description"], grade_data["defect_rate"] * 100]
-		card_vbox.add_child(desc)
+		if is_unlocked:
+			var effective_defect := maxf(0.005, grade_data["defect_rate"] - ResourceManager.get_tech_defect_reduction())
+			desc.text = "%s | 결함률: %.1f%% | 효율: x%.1f" % [
+				grade_data["description"],
+				effective_defect * 100,
+				grade_data.get("efficiency", 1.0)
+			]
+		else:
+			desc.text = "기술 레벨 %d에서 해금됩니다" % required_tech
 
+		card_vbox.add_child(desc)
 		facility_list.add_child(card)
 
 	# 요약
 	var total_output := ResourceManager.get_monthly_clone_output()
-	var net := total_output - Constants.MONTHLY_NATURAL_DECREASE
-	summary_label.text = "월 생산: %d명 | 자연감소: %d명 | 순변동: %s%d명" % [
-		total_output,
-		Constants.MONTHLY_NATURAL_DECREASE,
+	var nat_decrease := Constants.MONTHLY_NATURAL_DECREASE
+	var clone_deaths := int(ResourceManager.clone_population * 0.001)
+	var net := total_output - nat_decrease - clone_deaths
+	summary_label.text = "월 생산: %s명 | 자연감소: %s명 | 클론사망: %s명 | 순변동: %s%s명" % [
+		_format_number(total_output),
+		_format_number(nat_decrease),
+		_format_number(clone_deaths),
 		"+" if net >= 0 else "",
-		net
+		_format_number(net)
 	]
 
 	if net >= 0:
@@ -133,10 +162,9 @@ func _refresh() -> void:
 
 
 func _get_facility_cost(grade: int) -> int:
-	var base_costs: Dictionary = {0: 100, 1: 300, 2: 800, 3: 2000, 4: 5000}
-	var cost: float = base_costs.get(grade, 100)
-	var discount := (ResourceManager.tech_level - 1) * 0.05
-	return int(cost * (1.0 - discount))
+	var base: float = Constants.FACILITY_COST.get(grade, 100)
+	var discount := maxf(0.0, (ResourceManager.tech_level - 2) * 0.03)
+	return int(base * (1.0 - minf(discount, 0.3)))
 
 
 func _on_build_pressed(grade: int) -> void:
@@ -153,3 +181,17 @@ func _close() -> void:
 		visible = false
 		closed.emit()
 	)
+
+
+func _format_number(num: int) -> String:
+	var s := str(absi(num))
+	var result := ""
+	var count := 0
+	for i in range(s.length() - 1, -1, -1):
+		if count > 0 and count % 3 == 0:
+			result = "," + result
+		result = s[i] + result
+		count += 1
+	if num < 0:
+		result = "-" + result
+	return result

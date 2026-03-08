@@ -55,7 +55,6 @@ func _ready() -> void:
 
 
 func _apply_button_styles() -> void:
-	# 각 버튼에 고유 색상 + 아이콘 적용
 	_style_button(production_btn, Color(0.35, 0.55, 0.8), "⚙ 생산")
 	_style_button(deployment_btn, Color(0.4, 0.7, 0.4), "👥 배치")
 	_style_button(research_btn, Color(0.55, 0.45, 0.75), "🔬 연구")
@@ -96,15 +95,34 @@ func _update_date() -> void:
 
 
 func _update_budget() -> void:
-	budget_label.text = "💰 예산: %s억 원" % _format_number(int(ResourceManager.budget))
+	var b := int(ResourceManager.budget)
+	if b < 0:
+		budget_label.text = "💰 예산: %s억 원" % _format_number(b)
+		budget_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+	else:
+		budget_label.text = "💰 예산: %s억 원" % _format_number(b)
+		budget_label.add_theme_color_override("font_color", Color(1, 0.95, 0.7))
 
 
 func _update_population() -> void:
-	var pop := ResourceManager.population
-	if pop >= 10_000_000:
-		population_label.text = "👤 인구  %.1f백만" % (pop / 1_000_000.0)
+	var nat := ResourceManager.natural_population
+	var clones := ResourceManager.clone_population
+	var total := nat + clones
+
+	# 총 인구 + 구분 표시
+	var total_text := ""
+	if total >= 10_000_000:
+		total_text = "%.1f백만" % (total / 1_000_000.0)
 	else:
-		population_label.text = "👤 인구  %s명" % _format_number(pop)
+		total_text = "%s명" % _format_number(total)
+
+	var clone_text := ""
+	if clones >= 10_000:
+		clone_text = "%.1f만" % (clones / 10_000.0)
+	else:
+		clone_text = "%s" % _format_number(clones)
+
+	population_label.text = "👤 인구 %s (클론 %s)" % [total_text, clone_text]
 	population_label.add_theme_color_override("font_color", GameTheme.COLOR_POPULATION)
 
 
@@ -131,7 +149,11 @@ func _update_ethics() -> void:
 
 
 func _update_tech() -> void:
-	tech_label.text = "🔧 기술  Lv.%d" % ResourceManager.tech_level
+	var lv := ResourceManager.tech_level
+	var effect: String = Constants.TECH_EFFECTS.get(lv, "")
+	tech_label.text = "🔧 기술  Lv.%d" % lv
+	if effect != "":
+		tech_label.tooltip_text = "현재 효과: %s" % effect
 	tech_label.add_theme_color_override("font_color", GameTheme.COLOR_TECH)
 
 
@@ -170,7 +192,6 @@ func _update_progress() -> void:
 
 func set_news(text: String) -> void:
 	news_label.text = text
-	# 뉴스 변경 시 페이드 인 효과
 	news_label.modulate.a = 0
 	var tween := create_tween()
 	tween.tween_property(news_label, "modulate:a", 1.0, 0.3)

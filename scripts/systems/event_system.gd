@@ -85,7 +85,7 @@ func _get_quarterly_event(year: int, month: int) -> Dictionary:
 				"id": "annual_%d" % year,
 				"type": "quarterly",
 				"title": "연말 실적 보고",
-				"description": "올해의 성과를 정리할 시간입니다.\n올해 복제인간 생산: %d명\n인구 변동: %s명" % [ResourceManager.total_clones_produced, _format_number(ResourceManager.population - Constants.INITIAL_POPULATION)],
+				"description": "올해의 성과를 정리할 시간입니다.\n복제인간 총 생산: %s명\n현재 자연인구: %s명 | 복제인구: %s명" % [_format_number(ResourceManager.total_clones_produced), _format_number(ResourceManager.natural_population), _format_number(ResourceManager.clone_population)],
 				"choices": [
 					{"text": "내년 예산 증액을 요청한다", "effects": {"budget": 100, "director_mood": -5}},
 					{"text": "기술 R&D 투자를 건의한다", "effects": {"tech_level": 1, "budget": -30}},
